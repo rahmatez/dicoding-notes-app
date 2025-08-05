@@ -1,0 +1,22 @@
+.story-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px; /* Menambahkan jarak antar tombol */
+  margin-top: var(--space-md);
+}
+
+.story-card__actions .btn {
+  margin: 0; /* Menghapus margin default */
+}
+
+/* Pastikan tombol responsif pada layar kecil */
+@media (max-width: 480px) {
+  .story-card__actions {
+    justify-content: space-between;
+  }
+
+  .story-card__actions .btn {
+    flex: 0 0 calc(50% - 4px); /* Mengatur lebar tombol pada layar kecil */
+    text-align: center;
+  }
+}

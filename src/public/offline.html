@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline - Dicoding Story App</title>
+    <link rel="icon" type="image/x-icon" href="./public/favicon.png" />
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f0f2f5;
+        color: #333;
+        text-align: center;
+      }
+      .container {
+        padding: 2rem;
+        border-radius: 12px;
+        background-color: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        width: 90%;
+      }
+      h1 {
+        margin-top: 0;
+        color: #3498db;
+      }
+      .icon {
+        font-size: 4rem;
+        color: #3498db;
+        margin-bottom: 1rem;
+      }
+      .btn {
+        display: inline-block;
+        background-color: #3498db;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        margin-top: 1rem;
+        font-weight: bold;
+        transition: background-color 0.3s;
+      }
+      .btn:hover {
+        background-color: #2980b9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">📵</div>
+      <h1>Anda Sedang Offline</h1>
+      <p>
+        Maaf, Anda sedang offline dan halaman yang diminta tidak tersedia dalam
+        cache.
+      </p>
+      <p>Periksa koneksi internet Anda dan coba lagi.</p>
+      <a href="/" class="btn">Kembali ke Beranda</a>
+    </div>
+  </body>
+</html>
