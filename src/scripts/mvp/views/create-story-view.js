@@ -339,33 +339,53 @@ class CreateStoryView {
   }
   async _loadLeafletIfNeeded() {
     if (typeof L === "undefined" || !L) {
-      // Load Leaflet CSS
-      if (!document.getElementById("leaflet-css")) {
-        const leafletCSS = document.createElement("link");
-        leafletCSS.id = "leaflet-css";
-        leafletCSS.rel = "stylesheet";
-        leafletCSS.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-        leafletCSS.integrity =
-          "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=";
-        leafletCSS.crossOrigin = "";
-        document.head.appendChild(leafletCSS);
-      }
+      console.log("Loading Leaflet resources...");
 
-      // Load Leaflet JS
-      if (!document.getElementById("leaflet-js")) {
-        const leafletJS = document.createElement("script");
-        leafletJS.id = "leaflet-js";
-        leafletJS.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-        leafletJS.integrity =
-          "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";
-        leafletJS.crossOrigin = "";
-        document.head.appendChild(leafletJS);
+      try {
+        // Load Leaflet CSS
+        if (!document.getElementById("leaflet-css")) {
+          const leafletCSS = document.createElement("link");
+          leafletCSS.id = "leaflet-css";
+          leafletCSS.rel = "stylesheet";
+          leafletCSS.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+          document.head.appendChild(leafletCSS);
+        }
 
-        // Wait for script to load
-        await new Promise((resolve) => {
-          leafletJS.onload = resolve;
-        });
+        // Load Leaflet JS
+        if (!document.getElementById("leaflet-js")) {
+          const leafletJS = document.createElement("script");
+          leafletJS.id = "leaflet-js";
+          leafletJS.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+          document.head.appendChild(leafletJS);
+
+          // Wait for script to load
+          await new Promise((resolve) => {
+            leafletJS.onload = resolve;
+          });
+        }
+
+        // Add a direct marker to the page to help debug Leaflet icon issues
+        const styleTag = document.createElement("style");
+        styleTag.textContent = `
+          .marker-tooltip {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-weight: bold;
+          }
+          
+          .simple-custom-marker {
+            background: transparent !important;
+            border: none !important;
+          }
+        `;
+        document.head.appendChild(styleTag);
+
         console.log("Leaflet loaded successfully");
+      } catch (error) {
+        console.error("Error loading Leaflet:", error);
       }
     }
   }
@@ -385,6 +405,24 @@ class CreateStoryView {
           const defaultLng = 106.8456;
 
           setTimeout(() => {
+            // Tambahkan style untuk marker sebelum inisialisasi peta
+            if (!document.getElementById("custom-marker-style")) {
+              const styleEl = document.createElement("style");
+              styleEl.id = "custom-marker-style";
+              styleEl.textContent = `
+                .custom-map-marker {
+                  background: transparent !important;
+                  border: none !important;
+                }
+                .custom-map-marker i {
+                  color: #e74c3c !important;
+                  font-size: 24px !important;
+                  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7)) !important;
+                }
+              `;
+              document.head.appendChild(styleEl);
+            }
+
             this._map = L.map(this._locationMap).setView(
               [defaultLat, defaultLng],
               13
@@ -395,36 +433,17 @@ class CreateStoryView {
                 '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             }).addTo(this._map);
 
-            // Create custom icon for better visibility
-            const customIcon = L.divIcon({
-              html: `<i class="fas fa-map-marker-alt fa-2x" style="color: var(--error-color);"></i>`,
-              className: "custom-map-marker",
-              iconSize: [24, 40],
-              iconAnchor: [12, 40],
-            });
-
-            // Add click handler to map
+            // Add click handler to map - Simplified to avoid redundant code
             this._map.on("click", (e) => {
               const lat = e.latlng.lat;
               const lng = e.latlng.lng;
 
-              // Update marker position
-              if (this._marker) {
-                this._marker.setLatLng([lat, lng]);
-              } else {
-                this._marker = L.marker([lat, lng], { icon: customIcon }).addTo(
-                  this._map
-                );
-              }
+              console.log("Map clicked at:", lat, lng);
 
-              // Update form fields
-              this.setLocation(lat, lng);
+              // Update marker and coordinates in one method call
+              this.updateMapMarker(lat, lng);
 
-              // Show success notification
-              this._locationStatus.textContent = `Lokasi dipilih: ${lat.toFixed(
-                6
-              )}, ${lng.toFixed(6)}`;
-              this._locationStatus.className = "location-status success";
+              // No need to update form fields or status text here as updateMapMarker now does that
             });
 
             // Update map size after display
@@ -487,8 +506,23 @@ class CreateStoryView {
   setLocation(latitude, longitude) {
     this._latitudeInput.value = latitude;
     this._longitudeInput.value = longitude;
-    this._locationStatus.textContent = "Lokasi berhasil didapatkan";
-    this._locationStatus.classList.add("success");
+    this._locationStatus.textContent = `Lokasi dipilih: ${latitude.toFixed(
+      6
+    )}, ${longitude.toFixed(6)}`;
+    this._locationStatus.className = "location-status success";
+
+    // If map is initialized, update marker as well
+    if (this._map) {
+      // Only update marker, don't create a new one
+      if (this._marker) {
+        this._marker.setLatLng([latitude, longitude]);
+        this._map.panTo([latitude, longitude]);
+      } else {
+        // Create new marker if it doesn't exist
+        this._marker = L.marker([latitude, longitude]).addTo(this._map);
+        this._map.panTo([latitude, longitude]);
+      }
+    }
   }
 
   showLocationError(message) {
@@ -549,32 +583,106 @@ class CreateStoryView {
    * @param {Number} zoom - Optional zoom level
    */
   updateMapMarker(latitude, longitude, zoom = null) {
-    if (!this._map) return;
-
-    // If marker doesn't exist, create it
-    if (!this._marker) {
-      // Create custom marker icon
-      const customIcon = L.divIcon({
-        html: `<i class="fas fa-map-marker-alt fa-2x" style="color: var(--error-color);"></i>`,
-        className: "custom-map-marker",
-        iconSize: [24, 40],
-        iconAnchor: [12, 40],
-      });
-
-      // Create marker
-      this._marker = L.marker([latitude, longitude], {
-        icon: customIcon,
-      }).addTo(this._map);
-    } else {
-      // Update existing marker
-      this._marker.setLatLng([latitude, longitude]);
+    if (!this._map) {
+      console.error("Map is not initialized");
+      return;
     }
 
-    // Update map view
-    if (zoom !== null) {
-      this._map.setView([latitude, longitude], zoom, { animate: true });
-    } else {
-      this._map.panTo([latitude, longitude], { animate: true });
+    console.log("Updating marker to:", latitude, longitude);
+
+    try {
+      // Create a custom icon with a clear visual style
+      const markerHtml = `
+        <div style="
+          background-color: #e74c3c; 
+          width: 24px; 
+          height: 24px; 
+          border-radius: 50%; 
+          border: 3px solid white;
+          box-shadow: 0 0 10px rgba(0,0,0,0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          transform: translate(-50%, -50%);
+        ">
+          <i class="fas fa-map-marker-alt" style="color: white; font-size: 12px;"></i>
+        </div>
+      `;
+
+      // Create a custom icon
+      const customIcon = L.divIcon({
+        html: markerHtml,
+        className: "simple-custom-marker",
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+      });
+
+      // Handle marker update or creation
+      if (this._marker) {
+        // If marker already exists, update its position
+        this._marker.setLatLng([latitude, longitude]);
+        console.log("Updated existing marker position");
+      } else {
+        // Create a new marker with custom icon
+        this._marker = L.marker([latitude, longitude], {
+          icon: customIcon,
+          alt: "Lokasi cerita",
+        }).addTo(this._map);
+
+        // Add tooltip to the marker for better UX
+        this._marker.bindTooltip("Lokasi cerita", {
+          permanent: false,
+          direction: "top",
+          className: "marker-tooltip",
+        });
+
+        console.log("Created new marker with custom icon");
+      }
+
+      // Update coordinates in form
+      this._latitudeInput.value = latitude;
+      this._longitudeInput.value = longitude;
+
+      // Update map view position
+      this._map.panTo([latitude, longitude]);
+
+      // Set zoom if provided
+      if (zoom !== null) {
+        this._map.setZoom(zoom);
+      }
+
+      // Show coordinates in status
+      this._locationStatus.textContent = `Lokasi dipilih: ${latitude.toFixed(
+        6
+      )}, ${longitude.toFixed(6)}`;
+      this._locationStatus.className = "location-status success";
+
+      // Force map to recalculate its size
+      this._map.invalidateSize(true);
+    } catch (error) {
+      console.error("Error updating marker:", error);
+
+      // Fallback approach using standard marker
+      try {
+        if (this._marker) {
+          this._map.removeLayer(this._marker);
+        }
+        // Create basic marker without custom icon
+        this._marker = L.marker([latitude, longitude]).addTo(this._map);
+        this._map.panTo([latitude, longitude]);
+
+        // Update form and status
+        this._latitudeInput.value = latitude;
+        this._longitudeInput.value = longitude;
+        this._locationStatus.textContent = `Lokasi dipilih: ${latitude.toFixed(
+          6
+        )}, ${longitude.toFixed(6)}`;
+        this._locationStatus.className = "location-status success";
+      } catch (fallbackError) {
+        console.error("Even fallback approach failed:", fallbackError);
+        this._locationStatus.textContent = "Gagal menampilkan marker pada peta";
+        this._locationStatus.className = "location-status error";
+      }
     }
   }
 }

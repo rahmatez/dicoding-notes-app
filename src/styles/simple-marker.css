@@ -1,0 +1,41 @@
+/* Ensure default Leaflet markers are visible and properly styled */
+.leaflet-marker-icon {
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+/* Make sure marker pane is above other layers */
+.leaflet-marker-pane {
+  z-index: 9000 !important;
+}
+
+/* Fix positioning for markers */
+.leaflet-marker-icon.leaflet-interactive {
+  margin-left: -12px !important;
+  margin-top: -41px !important;
+}
+
+/* Ensure marker shadow is visible */
+.leaflet-shadow-pane {
+  z-index: 8000 !important;
+}
+
+/* Make sure popup appears above marker */
+.leaflet-popup-pane {
+  z-index: 10000 !important;
+}
+
+/* Fix issues with interactive elements */
+.leaflet-interactive {
+  cursor: pointer !important;
+  visibility: visible !important;
+}
+
+/* Fix for retina displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .leaflet-marker-icon {
+    background-size: contain !important;
+  }
+}

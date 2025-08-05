@@ -14,6 +14,8 @@ class DetailPresenter {
 
     // Set up event handlers
     this._view.setFavoriteHandler(this._handleFavoriteToggle);
+    this._view.setBeforeUnloadHandler(this._handleBeforeUnload);
+    this._view.setHashChangeHandler(this._handleBeforeUnload);
   }
 
   async init(storyId) {
@@ -27,9 +29,7 @@ class DetailPresenter {
     this._storyId = storyId;
     this._view.initElements();
 
-    // Register event listeners for cleanup
-    window.addEventListener("beforeunload", this._handleBeforeUnload);
-    window.addEventListener("hashchange", this._handleBeforeUnload);
+    // Event listeners are now registered through the view in the constructor
 
     // Check if we have a valid story ID
     if (!storyId) {
@@ -63,6 +63,10 @@ class DetailPresenter {
       // Store current story for later use
       this._currentStory = story;
 
+      // Check if story is liked before passing to view
+      const isLiked = await this._model.isStoryLiked(story.id);
+      story.isLiked = isLiked; // Attach isLiked status to the story object
+
       await this._view.displayStory(story);
       this._view.hideLoading();
     } catch (error) {
@@ -81,16 +85,19 @@ class DetailPresenter {
         await this._model.unlikeStory(story.id);
         console.log("Story removed from favorites");
 
-        // Update the UI to show "Add to favorites" button
-        await this._view.displayStory(story);
+        // Update the story's like status
+        story.isLiked = false;
       } else {
         // Add to favorites
         await this._model.likeStory(story);
         console.log("Story added to favorites");
 
-        // Update the UI to show "Remove from favorites" button
-        await this._view.displayStory(story);
+        // Update the story's like status
+        story.isLiked = true;
       }
+
+      // Update the UI with the new favorite status
+      await this._view.displayStory(story);
     } catch (error) {
       console.error("Error toggling favorite status:", error);
     }
@@ -101,9 +108,8 @@ class DetailPresenter {
     console.log("Cleaning up detail view resources");
     this._view.cleanup();
 
-    // Remove event listeners
-    window.removeEventListener("beforeunload", this._handleBeforeUnload);
-    window.removeEventListener("hashchange", this._handleBeforeUnload);
+    // Remove event listeners through the view
+    this._view.removeEventListeners();
   }
 
   // Method that can be called from outside to clean up resources

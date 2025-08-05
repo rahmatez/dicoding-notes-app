@@ -37,6 +37,19 @@
 /* Custom marker styling */
 .custom-map-marker {
   animation: marker-bounce 0.5s ease infinite alternate;
+  position: relative;
+  z-index: 1000; /* Memastikan marker muncul di atas lapisan lain */
+  pointer-events: auto; /* Memastikan marker dapat diklik */
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-map-marker i {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+  transform-origin: bottom center;
+  color: #e74c3c !important;
+  font-size: 2em;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 @keyframes marker-bounce {
@@ -44,7 +57,7 @@
     transform: translateY(0);
   }
   to {
-    transform: translateY(-10px);
+    transform: translateY(-5px);
   }
 }
 

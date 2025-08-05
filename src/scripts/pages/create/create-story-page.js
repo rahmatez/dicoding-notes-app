@@ -292,49 +292,88 @@ class CreateStoryPage {
   }
 
   _initMap() {
-    import("leaflet").then((L) => {
-      this._mapElement = document.getElementById("map");
+    console.log("Initializing map in create-story-page.js");
 
-      // Pastikan map sudah dibersihkan sebelum inisialisasi baru
-      if (this._map) {
-        this._map.remove();
-        this._map = null;
-        this._marker = null;
+    // Import both leaflet and our custom helper
+    Promise.all([import("leaflet"), import("../../utils/map-helper")]).then(
+      ([L, MapHelper]) => {
+        console.log("Leaflet and MapHelper loaded successfully");
+        this._mapElement = document.getElementById("map");
+
+        // Pastikan map sudah dibersihkan sebelum inisialisasi baru
+        if (this._map) {
+          this._map.remove();
+          this._map = null;
+          this._marker = null;
+        }
+
+        try {
+          // Inisialisasi peta dengan lokasi default (Indonesia)
+          this._map = L.map(this._mapElement).setView(
+            [-2.548926, 118.0148634],
+            5
+          );
+
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          }).addTo(this._map);
+
+          // Tambahkan event listener untuk klik pada peta
+          this._map.on("click", (event) => {
+            const { lat, lng } = event.latlng;
+            console.log("Map clicked at:", lat, lng);
+
+            try {
+              // Create simple marker with clear styling directly
+              const markerHtml = `
+                <div style="
+                  background-color: #e74c3c; 
+                  width: 30px; 
+                  height: 30px; 
+                  border-radius: 50%; 
+                  border: 3px solid white;
+                  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                "></div>
+              `;
+
+              // Create a custom icon
+              const simpleIcon = L.divIcon({
+                html: markerHtml,
+                className: "custom-map-marker",
+                iconSize: [30, 30],
+                iconAnchor: [15, 15],
+              });
+
+              // Update marker jika sudah ada
+              if (this._marker) {
+                this._marker.setLatLng([lat, lng]);
+                console.log("Updated existing marker position");
+              } else {
+                // Buat marker baru dengan ikon yang jelas
+                this._marker = L.marker([lat, lng], {
+                  icon: simpleIcon,
+                  alt: "Location marker",
+                }).addTo(this._map);
+                console.log("Created new marker at position:", lat, lng);
+              }
+            } catch (err) {
+              console.error("Error creating marker:", err);
+              // Fallback ke marker default jika ada error
+              this._marker = L.marker([lat, lng]).addTo(this._map);
+            }
+
+            // Simpan koordinat
+            this._coordinates = { lat, lon: lng };
+            this._latElement.textContent = lat.toFixed(6);
+            this._lonElement.textContent = lng.toFixed(6);
+            this._coordinatesElement.classList.remove("hidden");
+          });
+        } catch (error) {
+          console.error("Error initializing map:", error);
+        }
       }
-
-      try {
-        // Inisialisasi peta dengan lokasi default (Indonesia)
-        this._map = L.map(this._mapElement).setView(
-          [-2.548926, 118.0148634],
-          5
-        );
-
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }).addTo(this._map);
-
-        // Tambahkan event listener untuk klik pada peta
-        this._map.on("click", (event) => {
-          const { lat, lng } = event.latlng;
-
-          // Update marker jika sudah ada
-          if (this._marker) {
-            this._marker.setLatLng([lat, lng]);
-          } else {
-            this._marker = L.marker([lat, lng]).addTo(this._map);
-          }
-
-          // Simpan koordinat
-          this._coordinates = { lat, lon: lng };
-          this._latElement.textContent = lat.toFixed(6);
-          this._lonElement.textContent = lng.toFixed(6);
-          this._coordinatesElement.classList.remove("hidden");
-        });
-      } catch (error) {
-        console.error("Error initializing map:", error);
-      }
-    });
+    );
   }
 
   async _handleSubmit(event) {

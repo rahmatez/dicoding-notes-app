@@ -66,9 +66,8 @@ class DetailView {
       `;
     }
 
-    // Check if story is liked
-    const storyModel = new StoryModel();
-    const isLiked = await storyModel.isStoryLiked(story.id);
+    // Use isLiked status passed from presenter
+    const isLiked = story.isLiked;
 
     this._storyContainer.innerHTML = `
       <article class="story-detail__article">
@@ -186,82 +185,174 @@ class DetailView {
     // Import leaflet dynamically
     import("leaflet")
       .then((L) => {
-        // First ensure we clean up any existing map instance
-        if (this._mapInstance) {
-          console.log("Cleaning up existing map instance");
-          this._mapInstance.remove();
-          this._mapInstance = null;
-        }
+        console.log("Leaflet loaded successfully for detail view");
 
-        // Always recreate the map container to avoid initialization issues
-        const mapParent = document.querySelector(".story-detail__map");
-        if (mapParent) {
-          // Remove old map element completely
-          const oldMapElement = document.getElementById("map");
-          if (oldMapElement) {
-            oldMapElement.remove();
-          }
+        // Clean up any existing map instance COMPLETELY
+        this._cleanupMap();
 
-          // Create a new map container
-          const newMapElement = document.createElement("div");
-          newMapElement.id = "map";
-          newMapElement.className = "map-container";
-          mapParent.insertBefore(
-            newMapElement,
-            document.querySelector(".story-detail__coordinates")
-          );
-        }
-
-        // Get fresh reference to the newly created map element
-        const mapElement = document.getElementById("map");
-        if (!mapElement) {
-          console.log("Map element not found, cannot initialize map");
-          return;
-        }
-
-        // Add a small delay to ensure DOM is ready
+        // Give the DOM a moment to update after cleanup
         setTimeout(() => {
           try {
-            // Initialize new map on the fresh element
-            console.log("Initializing new map instance");
-            this._mapInstance = L.map(mapElement, {
-              // Use options that prevent conflicts
-              attributionControl: false,
+            // Get the map container
+            const mapParent = document.querySelector(".story-detail__map");
+            if (!mapParent) {
+              console.error("Map parent container not found");
+              return;
+            }
+
+            console.log("Creating new map container");
+
+            // Create a fresh map container with unique ID to avoid conflicts
+            const mapId = "map-" + Date.now();
+            const mapElement = document.createElement("div");
+            mapElement.id = mapId;
+            mapElement.className = "map-container";
+            mapElement.style.height = "300px"; // Explicit height helps with rendering
+            mapElement.style.width = "100%";
+
+            // Pastikan parent kosong sebelum menambahkan elemen baru
+            mapParent.innerHTML = "";
+            mapParent.appendChild(mapElement);
+
+            console.log("Map container created with ID:", mapId);
+
+            // Create the map instance
+            this._mapInstance = L.map(mapId, {
+              center: [lat, lon],
+              zoom: 15,
               zoomControl: true,
-            }).setView([lat, lon], 15);
+            });
 
-            // Add attribution separately to avoid issues
-            L.control
-              .attribution({
-                prefix:
-                  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-              })
-              .addTo(this._mapInstance);
-
+            // Add the tile layer
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-              attribution: false, // We added attribution separately
+              attribution:
+                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              maxZoom: 19,
             }).addTo(this._mapInstance);
 
-            // Add marker with popup
-            L.marker([lat, lon])
-              .addTo(this._mapInstance)
+            // Create simple marker with clear styling directly
+            const markerHtml = `
+              <div style="
+                background-color: #e74c3c; 
+                width: 30px; 
+                height: 30px; 
+                border-radius: 50%; 
+                border: 3px solid white;
+                box-shadow: 0 0 10px rgba(0,0,0,0.5);
+              "></div>
+            `;
+
+            // Create a custom icon without using the helper
+            const simpleIcon = L.divIcon({
+              html: markerHtml,
+              className: "custom-map-marker",
+              iconSize: [30, 30],
+              iconAnchor: [15, 15],
+            });
+
+            // Add marker with the custom icon
+            console.log("Adding marker at:", lat, lon);
+
+            // Create marker and add to map
+            const marker = L.marker([lat, lon], {
+              icon: simpleIcon,
+              alt: "Story location marker",
+            }).addTo(this._mapInstance);
+
+            // Add popup to marker
+            marker
               .bindPopup(
                 `<b>${name}</b><br>${description.substring(0, 100)}...`
               )
               .openPopup();
 
-            // Update map size
-            this._mapInstance.invalidateSize();
+            console.log("Map marker created successfully");
 
-            console.log("Map initialized successfully");
+            // Force a resize/redraw
+            this._mapInstance.invalidateSize(true);
+
+            console.log(
+              "Map initialized successfully with marker at:",
+              lat,
+              lon
+            );
           } catch (error) {
-            console.error("Error initializing map:", error);
+            console.error("Error during map initialization:", error);
           }
-        }, 300); // Increased delay for better stability
+        }, 500);
       })
       .catch((error) => {
-        console.error("Error loading Leaflet:", error);
+        console.error("Error loading Leaflet library:", error);
       });
+  }
+
+  // Helper method to properly clean up the map
+  _cleanupMap() {
+    console.log("Cleaning up map resources completely");
+
+    try {
+      // Remove existing map instance if it exists
+      if (this._mapInstance) {
+        console.log("Removing existing map instance");
+        // Remove all layers from the map
+        this._mapInstance.eachLayer((layer) => {
+          this._mapInstance.removeLayer(layer);
+        });
+        // Disable all event handlers
+        this._mapInstance.off();
+        // Stop any animations/handlers
+        this._mapInstance.stopLocate();
+        // Remove the map completely
+        this._mapInstance.remove();
+        // Clear reference
+        this._mapInstance = null;
+      }
+    } catch (error) {
+      console.warn("Error cleaning up map instance:", error);
+    }
+
+    try {
+      // Clean up DOM elements
+      // 1. Find all map containers (using both id and class selectors)
+      const mapContainers = document.querySelectorAll(
+        '#map, .map-container, div[id^="map-"]'
+      );
+      mapContainers.forEach((container) => {
+        if (container && container.parentNode) {
+          console.log("Removing map container:", container.id);
+          // Clear any Leaflet-specific attributes
+          if (container._leaflet_id) {
+            delete container._leaflet_id;
+          }
+          container.remove();
+        }
+      });
+
+      // 2. Remove any orphaned Leaflet elements
+      document
+        .querySelectorAll(".leaflet-container, .leaflet-control, .leaflet-pane")
+        .forEach((el) => {
+          console.log("Removing orphaned Leaflet element:", el.className);
+          el.remove();
+        });
+
+      // 3. Clean up the map parent container for fresh start
+      const mapParent = document.querySelector(".story-detail__map");
+      if (mapParent) {
+        // Keep the title but remove all map-related content
+        const mapTitle = mapParent.querySelector(".story-detail__map-title");
+        const coordinates = mapParent.querySelector(
+          ".story-detail__coordinates"
+        );
+
+        // Clear the parent while preserving the title and coordinates
+        mapParent.innerHTML = "";
+        if (mapTitle) mapParent.appendChild(mapTitle);
+        if (coordinates) mapParent.appendChild(coordinates);
+      }
+    } catch (error) {
+      console.warn("Error cleaning up map DOM elements:", error);
+    }
   }
 
   // Share story using Web Share API if available
@@ -269,10 +360,13 @@ class DetailView {
     if (!navigator.share) return;
 
     try {
+      // Get current URL without accessing window directly
+      const currentUrl = document.URL;
+
       await navigator.share({
         title: `Cerita dari ${story.name}`,
         text: story.description.substring(0, 100) + "...",
-        url: window.location.href,
+        url: currentUrl,
       });
       console.log("Berhasil membagikan cerita");
     } catch (error) {
@@ -282,21 +376,11 @@ class DetailView {
 
   // Clean up resources when view is no longer needed
   cleanup() {
-    if (this._mapInstance) {
-      console.log("Cleaning up map resources");
-      try {
-        this._mapInstance.remove();
-      } catch (error) {
-        console.warn("Error while removing map:", error);
-      }
-      this._mapInstance = null;
+    // Clean up map resources
+    this._cleanupMap();
 
-      // Remove map element completely from DOM
-      const mapElement = document.getElementById("map");
-      if (mapElement) {
-        mapElement.remove();
-      }
-    }
+    // Remove all event listeners
+    this.removeEventListeners();
 
     // Remove any event listeners if needed
     const shareButton = document.getElementById("share-button");
@@ -313,6 +397,28 @@ class DetailView {
   // Add handler for favorite/unfavorite button
   setFavoriteHandler(handler) {
     this._favoriteCallback = handler;
+  }
+
+  // Add handlers for navigation events
+  setBeforeUnloadHandler(handler) {
+    this._beforeUnloadHandler = handler;
+    window.addEventListener("beforeunload", this._beforeUnloadHandler);
+  }
+
+  setHashChangeHandler(handler) {
+    this._hashChangeHandler = handler;
+    window.addEventListener("hashchange", this._hashChangeHandler);
+  }
+
+  // Remove event listeners
+  removeEventListeners() {
+    if (this._beforeUnloadHandler) {
+      window.removeEventListener("beforeunload", this._beforeUnloadHandler);
+    }
+
+    if (this._hashChangeHandler) {
+      window.removeEventListener("hashchange", this._hashChangeHandler);
+    }
   }
 }
 

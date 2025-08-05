@@ -103,15 +103,21 @@ class CreateStoryPresenter {
         this._view.setLocation(latitude, longitude);
         this._view.showNotification("Lokasi berhasil didapatkan!", "success");
 
-        // Show map with the current location
-        if (!this._view._mapContainer.classList.contains("hidden")) {
-          // If map is already visible, update marker
-          this._updateMapMarker(latitude, longitude);
-        } else {
-          // Otherwise, show map and then update marker
-          this._view._mapContainer.classList.remove("hidden");
-          setTimeout(() => this._updateMapMarker(latitude, longitude), 300);
-        }
+        // Always show map with the current location
+        this._view._mapContainer.classList.remove("hidden");
+
+        // Make sure map is visible before updating marker
+        setTimeout(() => {
+          // Simple approach: Just call updateMapMarker directly on view
+          this._view.updateMapMarker(latitude, longitude, 15);
+
+          // Alternative approach: Make sure map is fully initialized
+          if (!this._view._map) {
+            this._initMap().then(() => {
+              this._view.updateMapMarker(latitude, longitude, 15);
+            });
+          }
+        }, 300);
       },
       (error) => {
         console.error("Geolocation error:", error);
@@ -134,6 +140,34 @@ class CreateStoryPresenter {
       },
       { timeout: 10000 }
     );
+  }
+
+  async _initMap() {
+    // Make sure Leaflet is loaded
+    await loadLeafletResources();
+
+    // Make sure map container is visible
+    if (this._view._mapContainer.classList.contains("hidden")) {
+      this._view._mapContainer.classList.remove("hidden");
+    }
+
+    // Initialize map if needed
+    if (!this._view._map && this._view._locationMap) {
+      return new Promise((resolve) => {
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+          try {
+            this._updateMapMarker(0, 0);
+            resolve();
+          } catch (error) {
+            console.error("Error initializing map:", error);
+            resolve(); // Resolve anyway to prevent hanging
+          }
+        }, 300);
+      });
+    }
+
+    return Promise.resolve();
   }
 
   async _updateMapMarker(latitude, longitude) {

@@ -1,5 +1,7 @@
 /* Leaflet CSS akan diimpor melalui JavaScript saat dibutuhkan */
 @import "./map-styles.css";
+@import "./marker-fix.css"; /* Tambahan untuk memperbaiki visibilitas marker */
+@import "./simple-marker.css"; /* Marker sederhana yang pasti berfungsi */
 @import "./story-card-actions.css";
 @import "./not-found.css";
 

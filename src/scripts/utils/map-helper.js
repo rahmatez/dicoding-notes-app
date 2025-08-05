@@ -48,16 +48,21 @@ export const loadLeafletResources = () => {
 
 /**
  * Creates a custom marker icon for the map
+ * @param {Object} L - Leaflet library object
  * @returns {Object} Leaflet DivIcon instance
  */
-export const createCustomMarkerIcon = () => {
-  if (typeof L === "undefined" || !L) return null;
+export const createCustomMarkerIcon = (L) => {
+  if (!L) {
+    console.error("Leaflet object required for createCustomMarkerIcon");
+    return null;
+  }
 
   return L.divIcon({
-    html: `<i class="fas fa-map-marker-alt fa-2x" style="color: var(--error-color);"></i>`,
+    html: `<i class="fas fa-map-marker-alt fa-3x" style="color: #e74c3c; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);"></i>`,
     className: "custom-map-marker",
-    iconSize: [24, 40],
-    iconAnchor: [12, 40],
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -35],
   });
 };
 
@@ -90,7 +95,7 @@ export const initializeMap = (
   }).addTo(map);
 
   // Create marker
-  const customIcon = createCustomMarkerIcon();
+  const customIcon = createCustomMarkerIcon(L);
   const marker = L.marker(initialPosition, { icon: customIcon }).addTo(map);
 
   // Add click handler

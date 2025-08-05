@@ -1,0 +1,43 @@
+/* Enhanced marker visibility */
+.leaflet-marker-icon {
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5)) !important;
+  z-index: 1000 !important;
+}
+
+/* Make all markers visible */
+.leaflet-marker-pane {
+  z-index: 1000 !important;
+}
+
+/* Custom marker enhanced */
+.custom-map-marker {
+  background-color: transparent !important;
+  border: none !important;
+  transform: none !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* Make sure Font Awesome icons are visible */
+.custom-map-marker i.fas.fa-map-marker-alt {
+  font-size: 24px !important;
+  color: #e74c3c !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7)) !important;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Make sure popups appear above markers */
+.leaflet-popup-pane {
+  z-index: 1100 !important;
+}
+
+/* Make sure all Leaflet controls are visible */
+.leaflet-control-container .leaflet-control {
+  z-index: 1200 !important;
+}
+
+/* Clear any potentially conflicting styles */
+.simple-custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
