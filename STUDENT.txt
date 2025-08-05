@@ -1,3 +1,5 @@
 Nama: Rahmat Ashari
 Email: rahmatezdev@gmail.com
 Kelas: Belajar Pengembangan Web Intermediate
+
+Link deploy : https://dicoding-notes-app-rahmatez.netlify.app/
