@@ -1,10 +1,16 @@
-import { checkAuth, showFormattedDateTime } from "../../utils";
+import { showFormattedDateTime, RouterHelper } from "../../utils";
 
 class HomeView {
   constructor() {
     this._storiesContainer = null;
     this._loadingElement = null;
     this._errorContainer = null;
+    this._isLoggedIn = false;
+    this._scrollHandler = null;
+  }
+
+  setAuthStatus(isLoggedIn) {
+    this._isLoggedIn = isLoggedIn;
   }
 
   getTemplate() {
@@ -17,7 +23,7 @@ class HomeView {
 
         <div id="stories-container" class="stories-grid">
           ${
-            !checkAuth()
+            !this._isLoggedIn
               ? `
             <div class="welcome-message">
               <h2>Selamat Datang di Dicoding Story</h2>
@@ -48,7 +54,7 @@ class HomeView {
     this._errorContainer = document.getElementById("error-container");
 
     // If user is not logged in, we don't need to clear the welcome message
-    if (checkAuth() && this._storiesContainer) {
+    if (this._isLoggedIn && this._storiesContainer) {
       // Clear the container before fetching stories to prevent duplication
       this._storiesContainer.innerHTML = "";
     }
@@ -59,6 +65,12 @@ class HomeView {
     }
 
     // Setup view transitions for links
+    this._setupViewTransitions();
+
+    return this;
+  }
+
+  _setupViewTransitions() {
     document.documentElement.addEventListener("click", (event) => {
       const target = event.target.closest("a");
       if (target && target.href && target.href.includes("#/")) {
@@ -72,13 +84,30 @@ class HomeView {
         if (document.startViewTransition) {
           event.preventDefault();
           document.startViewTransition(() => {
-            window.location.href = target.href;
+            RouterHelper.navigate(target.getAttribute("href"));
           });
         }
       }
     });
+  }
 
-    return this;
+  setupInfiniteScroll(callback) {
+    // Remove existing scroll handler if any
+    if (this._scrollHandler) {
+      RouterHelper.removeEventListener("scroll", this._scrollHandler);
+    }
+
+    // Create new scroll handler
+    this._scrollHandler = () => {
+      const { scrollTop, scrollHeight, clientHeight } =
+        document.documentElement;
+      if (scrollTop + clientHeight >= scrollHeight - 10) {
+        callback();
+      }
+    };
+
+    // Add scroll event listener
+    RouterHelper.addEventListener("scroll", this._scrollHandler);
   }
 
   showLoading() {
@@ -169,6 +198,14 @@ class HomeView {
     `;
 
     return storyCard;
+  }
+
+  cleanup() {
+    // Remove scroll handler
+    if (this._scrollHandler) {
+      RouterHelper.removeEventListener("scroll", this._scrollHandler);
+      this._scrollHandler = null;
+    }
   }
 }
 

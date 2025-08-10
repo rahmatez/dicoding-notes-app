@@ -3,6 +3,7 @@ const common = require("./webpack.common.js");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const WorkboxWebpackPlugin = require("workbox-webpack-plugin");
+const webpack = require("webpack");
 const path = require("path");
 
 module.exports = merge(common, {
@@ -53,6 +54,9 @@ module.exports = merge(common, {
   },
   plugins: [
     new CleanWebpackPlugin(),
+    new webpack.DefinePlugin({
+      "process.env.NODE_ENV": JSON.stringify("production"),
+    }),
     new MiniCssExtractPlugin({
       filename: "styles/[name].[contenthash].css",
     }),

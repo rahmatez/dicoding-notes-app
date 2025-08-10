@@ -9,21 +9,13 @@
   z-index: 1000 !important;
 }
 
-/* Custom marker enhanced */
-.custom-map-marker {
-  background-color: transparent !important;
-  border: none !important;
-  transform: none !important;
-  width: auto !important;
-  height: auto !important;
+/* Cursor pointer untuk peta yang bisa diklik */
+.leaflet-container {
+  cursor: pointer !important;
 }
 
-/* Make sure Font Awesome icons are visible */
-.custom-map-marker i.fas.fa-map-marker-alt {
-  font-size: 24px !important;
-  color: #e74c3c !important;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7)) !important;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5) !important;
+.leaflet-clickable {
+  cursor: pointer !important;
 }
 
 /* Make sure popups appear above markers */
@@ -34,10 +26,4 @@
 /* Make sure all Leaflet controls are visible */
 .leaflet-control-container .leaflet-control {
   z-index: 1200 !important;
-}
-
-/* Clear any potentially conflicting styles */
-.simple-custom-marker {
-  background: transparent !important;
-  border: none !important;
 }

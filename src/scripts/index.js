@@ -6,9 +6,9 @@ import CONFIG from "./config";
 // CSS imports - terpisah dari logika kode untuk menghindari masalah
 import "../styles/styles.css";
 
-// Register Service Worker
+// Register Service Worker (only in production)
 const registerServiceWorker = async () => {
-  if ("serviceWorker" in navigator) {
+  if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
     try {
       // Use the correct path relative to the server root
       await navigator.serviceWorker.register("./sw.bundle.js");
@@ -48,6 +48,9 @@ const updateNavigationUI = () => {
   }
 };
 
+// Export function untuk bisa digunakan dari presenter
+window.updateNavigationUI = updateNavigationUI;
+
 // Setup logout button
 const setupLogoutButton = () => {
   const logoutButton = document.getElementById("logout-button");
@@ -55,6 +58,10 @@ const setupLogoutButton = () => {
     logoutButton.addEventListener("click", (event) => {
       event.preventDefault();
       logout();
+      // Update navigation UI immediately after logout
+      updateNavigationUI();
+      // Redirect to home and reload page
+      window.location.href = "#/";
       window.location.reload();
     });
   }
@@ -174,6 +181,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       "hashchange event triggered from browser:",
       window.location.hash
     );
+
+    // Render halaman terlebih dahulu
+    await app.renderPage();
 
     // Gunakan View Transition API jika didukung
     if (document.startViewTransition) {

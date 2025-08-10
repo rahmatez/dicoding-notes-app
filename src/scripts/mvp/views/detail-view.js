@@ -1,4 +1,4 @@
-import StoryModel from "../models/story-model";
+import { RouterHelper } from "../../utils";
 
 class DetailView {
   constructor() {
@@ -360,8 +360,8 @@ class DetailView {
     if (!navigator.share) return;
 
     try {
-      // Get current URL without accessing window directly
-      const currentUrl = document.URL;
+      // Get current URL without accessing document directly
+      const currentUrl = RouterHelper.getCurrentUrl();
 
       await navigator.share({
         title: `Cerita dari ${story.name}`,
@@ -402,22 +402,25 @@ class DetailView {
   // Add handlers for navigation events
   setBeforeUnloadHandler(handler) {
     this._beforeUnloadHandler = handler;
-    window.addEventListener("beforeunload", this._beforeUnloadHandler);
+    RouterHelper.addEventListener("beforeunload", this._beforeUnloadHandler);
   }
 
   setHashChangeHandler(handler) {
     this._hashChangeHandler = handler;
-    window.addEventListener("hashchange", this._hashChangeHandler);
+    RouterHelper.addEventListener("hashchange", this._hashChangeHandler);
   }
 
   // Remove event listeners
   removeEventListeners() {
     if (this._beforeUnloadHandler) {
-      window.removeEventListener("beforeunload", this._beforeUnloadHandler);
+      RouterHelper.removeEventListener(
+        "beforeunload",
+        this._beforeUnloadHandler
+      );
     }
 
     if (this._hashChangeHandler) {
-      window.removeEventListener("hashchange", this._hashChangeHandler);
+      RouterHelper.removeEventListener("hashchange", this._hashChangeHandler);
     }
   }
 }

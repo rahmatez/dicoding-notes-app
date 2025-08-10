@@ -8,6 +8,9 @@ class HomePresenter {
   }
 
   async init() {
+    // Set auth status in view
+    this._view.setAuthStatus(checkAuth());
+
     // Initialize the view elements
     this._view.initElements();
 
@@ -41,15 +44,9 @@ class HomePresenter {
       // Fetch stories immediately without delay to prevent blank page
       await this._fetchStories();
 
-      // Infinite scroll only for logged in users
-      window.addEventListener("scroll", () => {
-        const { scrollTop, scrollHeight, clientHeight } =
-          document.documentElement;
-        if (
-          scrollTop + clientHeight >= scrollHeight - 10 &&
-          !this._isLoading &&
-          this._model.hasMoreStories
-        ) {
+      // Setup infinite scroll through view layer
+      this._view.setupInfiniteScroll(() => {
+        if (!this._isLoading && this._model.hasMoreStories) {
           this._fetchStories();
         }
       });
@@ -99,6 +96,7 @@ class HomePresenter {
   destroy() {
     // Clean up any resources or event listeners if needed
     console.log("Cleaning up home presenter");
+    this._view.cleanup();
   }
 }
 

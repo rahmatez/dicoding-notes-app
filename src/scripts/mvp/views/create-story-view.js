@@ -405,19 +405,16 @@ class CreateStoryView {
           const defaultLng = 106.8456;
 
           setTimeout(() => {
-            // Tambahkan style untuk marker sebelum inisialisasi peta
-            if (!document.getElementById("custom-marker-style")) {
+            // Tambahkan style untuk cursor pointer pada peta
+            if (!document.getElementById("map-cursor-style")) {
               const styleEl = document.createElement("style");
-              styleEl.id = "custom-marker-style";
+              styleEl.id = "map-cursor-style";
               styleEl.textContent = `
-                .custom-map-marker {
-                  background: transparent !important;
-                  border: none !important;
+                .leaflet-container {
+                  cursor: pointer !important;
                 }
-                .custom-map-marker i {
-                  color: #e74c3c !important;
-                  font-size: 24px !important;
-                  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7)) !important;
+                .leaflet-clickable {
+                  cursor: pointer !important;
                 }
               `;
               document.head.appendChild(styleEl);
@@ -518,8 +515,11 @@ class CreateStoryView {
         this._marker.setLatLng([latitude, longitude]);
         this._map.panTo([latitude, longitude]);
       } else {
-        // Create new marker if it doesn't exist
-        this._marker = L.marker([latitude, longitude]).addTo(this._map);
+        // Create new marker with default Leaflet icon (blue) if it doesn't exist
+        this._marker = L.marker([latitude, longitude])
+          .addTo(this._map)
+          .bindPopup("Lokasi cerita dipilih")
+          .openPopup();
         this._map.panTo([latitude, longitude]);
       }
     }
@@ -591,52 +591,19 @@ class CreateStoryView {
     console.log("Updating marker to:", latitude, longitude);
 
     try {
-      // Create a custom icon with a clear visual style
-      const markerHtml = `
-        <div style="
-          background-color: #e74c3c; 
-          width: 24px; 
-          height: 24px; 
-          border-radius: 50%; 
-          border: 3px solid white;
-          box-shadow: 0 0 10px rgba(0,0,0,0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          transform: translate(-50%, -50%);
-        ">
-          <i class="fas fa-map-marker-alt" style="color: white; font-size: 12px;"></i>
-        </div>
-      `;
-
-      // Create a custom icon
-      const customIcon = L.divIcon({
-        html: markerHtml,
-        className: "simple-custom-marker",
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
-      });
-
-      // Handle marker update or creation
+      // Handle marker update or creation - menggunakan marker default Leaflet (biru)
       if (this._marker) {
         // If marker already exists, update its position
         this._marker.setLatLng([latitude, longitude]);
         console.log("Updated existing marker position");
       } else {
-        // Create a new marker with custom icon
-        this._marker = L.marker([latitude, longitude], {
-          icon: customIcon,
-          alt: "Lokasi cerita",
-        }).addTo(this._map);
+        // Create a new marker with default Leaflet icon (blue) - sama seperti di map view
+        this._marker = L.marker([latitude, longitude])
+          .addTo(this._map)
+          .bindPopup("Lokasi cerita dipilih")
+          .openPopup();
 
-        // Add tooltip to the marker for better UX
-        this._marker.bindTooltip("Lokasi cerita", {
-          permanent: false,
-          direction: "top",
-          className: "marker-tooltip",
-        });
-
-        console.log("Created new marker with custom icon");
+        console.log("Created new marker with default Leaflet icon (blue)");
       }
 
       // Update coordinates in form

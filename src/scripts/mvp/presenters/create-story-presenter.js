@@ -1,5 +1,10 @@
 import StoryModel from "../models/story-model";
-import { checkAuth, loadLeafletResources, updateMapMarker } from "../../utils";
+import {
+  checkAuth,
+  loadLeafletResources,
+  updateMapMarker,
+  RouterHelper,
+} from "../../utils";
 
 class CreateStoryPresenter {
   constructor({ model, view }) {
@@ -11,7 +16,7 @@ class CreateStoryPresenter {
     // Check if user is logged in
     const isLoggedIn = checkAuth();
     if (!isLoggedIn) {
-      window.location.hash = "#/login";
+      RouterHelper.navigate("#/login");
       return;
     }
 
@@ -74,7 +79,7 @@ class CreateStoryPresenter {
 
       // Redirect to home page after a short delay
       setTimeout(() => {
-        window.location.hash = "#/";
+        RouterHelper.navigate("#/");
       }, 1500);
     } catch (error) {
       console.error("Error creating story:", error);

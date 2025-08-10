@@ -1,4 +1,5 @@
 import AuthModel from "../models/auth-model";
+import { RouterHelper } from "../../utils";
 
 class LoginPresenter {
   constructor({ model, view }) {
@@ -28,9 +29,14 @@ class LoginPresenter {
       // Success notification
       this._view.showNotification("Login berhasil! Mengalihkan...", "success");
 
+      // Update navigation UI immediately after successful login
+      if (typeof window.updateNavigationUI === "function") {
+        window.updateNavigationUI();
+      }
+
       // Redirect to home page after short delay
       setTimeout(() => {
-        window.location.hash = "#/";
+        RouterHelper.navigate("#/");
       }, 1000);
     } catch (error) {
       console.error("Login error:", error);

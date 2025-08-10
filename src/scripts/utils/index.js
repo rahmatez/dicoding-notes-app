@@ -1,5 +1,7 @@
 import CONFIG from "../config";
+import RouterHelper from "./router-helper";
 export * from "./map-helper";
+export { RouterHelper };
 
 export function showFormattedDate(
   date,

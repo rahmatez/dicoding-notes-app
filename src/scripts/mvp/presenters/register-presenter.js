@@ -1,4 +1,5 @@
 import AuthModel from "../models/auth-model";
+import { RouterHelper } from "../../utils";
 
 class RegisterPresenter {
   constructor({ model, view }) {
@@ -30,7 +31,7 @@ class RegisterPresenter {
 
       // Redirect to login page after short delay
       setTimeout(() => {
-        window.location.hash = "#/login";
+        RouterHelper.navigate("#/login");
       }, 2000);
     } catch (error) {
       console.error("Register error:", error);
