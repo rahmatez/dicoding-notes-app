@@ -1,35 +1,22 @@
-Catatan dari Reviewer
+Project website yang kamu kirimkan sudah berjalan dengan baik. Namun sayangnya, masih terdapat beberapa catatan yang harus terpenuhi untuk menyelesaikan tugas submission. Yaitu:
 
-Hai rahmatez_DOMX! Terima kasih telah mengirimkan tugas submission sebagai syarat untuk melanjutkan pembelajaran. Project website yang kamu kirimkan sudah berjalan dengan baik. Namun sayangnya, masih terdapat beberapa catatan yang harus terpenuhi untuk menyelesaikan tugas submission. Yaitu:
+Kriteria Wajib 1
+Presenter langsung mengakses properti DOM milik View (\_mapContainer, \_map, \_locationMap, \_locationStatus). Dalam MVP, Presenter tidak seharusnya tahu detail DOM;
+terdapat pada : D:\laragon\www\Project\Dicoding\Web Intermediate\dicoding-notes-app\src\scripts\mvp\presenters\create-story-presenter.js
 
-Kriteria Wajib 1: Mempertahankan Seluruh Kriteria Wajib Submission Sebelumnya
+Selain menerapkan pendekatan Single Page Application (SPA), kamu juga perlu menggunakan pola arsitektur Model-View-Presenter (MVP). Dalam pola ini, proyek dibagi menjadi tiga komponen utama:
+Model: Bertanggung jawab sepenuhnya atas pengelolaan data dalam aplikasi, seperti: mengambil data dari server melalui HTTP request atau menyimpan data pada sebuah lokasi seperti local storage.
+View: Bertanggung jawab sepenuhnya atas tampilan aplikasi yang disajikan ke pengguna. Contoh, kode DOM Manipulation untuk menampilkan loading, menampilkan fallback error, dan menampilkan sebuah data.
+Presenter: Merupakan penghubung antara model dan view. Bertanggung jawab untuk mengatur logika presentasi, contoh menggunakan model untuk mendapatkan data dari API kemudian mengirimkan data tersebut ke view melalui sebuah fungsi.
+Kamu bisa membaca kembali penerapan pola MVP di modul SPA dengan MVP Pattern.
 
-1.  MVP
-    Saat ini penerapan MVP masih belum tepat karena masih ada manipulasi DOM di Presenter.
-    Pelajari kembali modul SPA dengan MVP Pattern. terdapat pada D:\laragon\www\Project\Dicoding\Web Intermediate\dicoding-notes-app\src\scripts\mvp\presenters\create-story-presenter.js baris 213 yaitu : // Update status text
-    this.\_view.\_locationStatus.textContent = `Lokasi dipilih: ${lat.toFixed(
-    Manipulasi DOM seharusnya hanya dilakukan di View ya.
+Skip to Content
+![alt text](image-3.png)
+Kamu masih belum menerapkan saran dari reviwer sebelumnya dimana masih melakukan perpindahan menuju halaman /#main-content.
+Saat ini link skip to content diarahkan ke /#main-content yang membuat browser melakukan navigasi seperti membuka halaman baru, bukan langsung memindahkan fokus ke konten utama di halaman yang sedang dibuka.
 
-              6
-            )}, ${lng.toFixed(6)}`;
-            this._view._locationStatus.className = "location-status success";
+Standar aksesibilitas mengharuskan skip link memindahkan fokus keyboard langsung ke elemen konten utama (<main> atau elemen target) tanpa reload atau navigasi ulang halaman.
 
-            Manipulasi DOM seharusnya hanya dilakukan di View ya. ![alt text](image-2.png)
+kamu bisa pastikan elemen target (misalnya <main id="main-content">) bisa menerima fokus sementara dengan tabindex="-1". Gunakan JavaScript untuk memanggil .focus() saat skip link ditekan.
 
-2.  Stream harus dinonaktif jika tidak digunakan.
-    Saat ini aplikasi belum dapat menonaktifkan kamera walaupun pengguna sudah berpindah halaman. Pastikan kamera dinonaktifkan jika pengguna berpindah halaman ya.
-
-![alt text](image.png)
-
-3. Aksesibilitas
-   Saat ini kamu sudah menerapkan skip to content, namun dalam penerapannya masih kurang tepat, seharusnya skip to content melakukan focusing pada konten utama dari halaman terkait, bukan melakukan perpindahan menuju halaman /#main-content.
-
-![alt text](image-1.png) Silakan diperbaiki.
-
-Kriteria Wajib 2: Menerapkan Push Notification
-
-Pastikan web menampilkan alert atau prompt izin (permission) untuk mengaktifkan notifikasi, untuk mempermudah mereka dalam memberikan izin notifikasi jika sebelumnya belum mengizinkannya. Langkah ini penting agar web dapat menampilkan notifikasi dengan lancar setelah pengguna berhasil menambahkan story. Dengan adanya alert tersebut, pengguna akan lebih terbantu dalam memahami bahwa sistem memerlukan izin tambahan untuk memberikan pemberitahuan, sehingga pengalaman penggunaan aplikasi menjadi lebih informatif dan responsif.
-Kriteria Wajib 3: Mengadopsi PWA (Installable & Offline)
-
-Penggunaan IndexedDB dalam proyek ini perlu disesuaikan dengan ketentuan yang berlaku, yaitu hanya diperbolehkan untuk mengelola fitur like atau favorite. Penggunaan di luar konteks tersebut, seperti untuk menyimpan data utama atau seluruh proses offline, tidak sesuai dengan kriteria yang ditetapkan. Untuk kebutuhan lainnya, seperti menyimpan data sementara atau mengoptimalkan performa akses data, sebaiknya menggunakan metode caching.
 Kamu dapat mengikuti beberapa saran di atas agar submission berikutnya dapat diterima dengan baik.

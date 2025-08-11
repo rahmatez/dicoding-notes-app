@@ -675,6 +675,66 @@ class CreateStoryView {
     }
   }
 
+  // Method to show/hide map container - should be called from presenter
+  showMap() {
+    if (this._mapContainer && this._mapContainer.classList.contains("hidden")) {
+      this._mapContainer.classList.remove("hidden");
+    }
+  }
+
+  hideMap() {
+    if (
+      this._mapContainer &&
+      !this._mapContainer.classList.contains("hidden")
+    ) {
+      this._mapContainer.classList.add("hidden");
+    }
+  }
+
+  isMapVisible() {
+    return (
+      this._mapContainer && !this._mapContainer.classList.contains("hidden")
+    );
+  }
+
+  // Method to check if map is initialized
+  isMapInitialized() {
+    return this._map !== null;
+  }
+
+  // Method to get map container element for initialization
+  getMapContainer() {
+    return this._locationMap;
+  }
+
+  // Method to set map instance (called after initialization)
+  setMapInstance(mapInstance) {
+    this._map = mapInstance;
+  }
+
+  // Method to get map instance
+  getMapInstance() {
+    return this._map;
+  }
+
+  // Method to setup map click handler through presenter callback
+  setupMapClickHandler(callback) {
+    if (this._map && typeof callback === "function") {
+      this._map.on("click", (e) => {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        callback(lat, lng);
+      });
+    }
+  }
+
+  // Method to invalidate map size
+  invalidateMapSize() {
+    if (this._map) {
+      setTimeout(() => this._map.invalidateSize(), 100);
+    }
+  }
+
   // Cleanup method to stop camera stream when leaving page
   cleanup() {
     console.log("CreateStoryView cleanup called");

@@ -248,7 +248,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const skipLink = document.querySelector(".skip-link");
 
   skipLink.addEventListener("click", function (event) {
-    event.preventDefault(); // Mencegah refresh halaman
+    event.preventDefault(); // Mencegah navigasi default
+    event.stopPropagation(); // Mencegah event bubbling
+
     skipLink.blur(); // Menghilangkan fokus skip to content
 
     // Focus pada konten utama yang spesifik dari halaman saat ini
@@ -266,10 +268,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       targetElement.setAttribute("tabindex", "-1");
     }
 
-    // Focus pada elemen target
+    // Focus pada elemen target tanpa scroll terlebih dahulu
     targetElement.focus();
 
-    // Scroll ke elemen target dengan smooth behavior
-    targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Scroll ke elemen target dengan smooth behavior setelah focus
+    setTimeout(() => {
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
+      });
+    }, 50);
+
+    return false; // Pastikan tidak ada navigasi
   });
 });

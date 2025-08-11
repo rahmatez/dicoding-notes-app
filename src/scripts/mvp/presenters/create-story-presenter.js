@@ -126,14 +126,13 @@ class CreateStoryPresenter {
 
         // Make sure map is visible before updating marker
         setTimeout(() => {
-          // Simple approach: Just call updateMapMarker directly on view
-          this._view.updateMapMarker(latitude, longitude, 15);
-
-          // Alternative approach: Make sure map is fully initialized
-          if (!this._view._map) {
+          // Initialize map if needed and update marker
+          if (!this._view.isMapInitialized()) {
             this._initMap().then(() => {
               this._view.updateMapMarker(latitude, longitude, 15);
             });
+          } else {
+            this._view.updateMapMarker(latitude, longitude, 15);
           }
         }, 300);
       },
@@ -170,12 +169,12 @@ class CreateStoryPresenter {
     }
 
     // Initialize map if needed
-    if (!this._view._map && this._view._locationMap) {
+    if (!this._view.isMapInitialized() && this._view.getMapContainer()) {
       return new Promise((resolve) => {
         // Small delay to ensure DOM is ready
         setTimeout(() => {
           try {
-            this._updateMapMarker(0, 0);
+            this._initializeMap(0, 0);
             resolve();
           } catch (error) {
             console.error("Error initializing map:", error);
@@ -198,36 +197,42 @@ class CreateStoryPresenter {
     }
 
     // If map isn't initialized yet, initialize it
-    if (!this._view._map && this._view._locationMap) {
-      // Initialize map centered on the provided coordinates
-      this._view._map = L.map(this._view._locationMap).setView(
-        [latitude, longitude],
-        15
-      );
-
-      // Add tile layer
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(this._view._map);
-
-      // Add click handler to map
-      this._view._map.on("click", (e) => {
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-
-        // Update location through view method (no direct DOM manipulation)
-        this._view.setLocation(lat, lng);
-
-        // Update marker
-        this._view.updateMapMarker(lat, lng);
-      });
-
-      // Update map size
-      setTimeout(() => this._view._map.invalidateSize(), 100);
+    if (!this._view.isMapInitialized()) {
+      this._initializeMap(latitude, longitude);
+    } else {
+      // Update marker on the existing map
+      this._view.updateMapMarker(latitude, longitude, 15);
     }
+  }
 
-    // Update marker on the map
+  _initializeMap(latitude, longitude) {
+    const mapContainer = this._view.getMapContainer();
+    if (!mapContainer) return;
+
+    // Initialize map centered on the provided coordinates
+    const map = L.map(mapContainer).setView([latitude, longitude], 15);
+
+    // Add tile layer
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    // Set map instance in view
+    this._view.setMapInstance(map);
+
+    // Setup map click handler through view
+    this._view.setupMapClickHandler((lat, lng) => {
+      // Update location through view method (no direct DOM manipulation)
+      this._view.setLocation(lat, lng);
+      // Update marker
+      this._view.updateMapMarker(lat, lng);
+    });
+
+    // Update map size
+    this._view.invalidateMapSize();
+
+    // Update marker on the new map
     this._view.updateMapMarker(latitude, longitude, 15);
   }
 }
