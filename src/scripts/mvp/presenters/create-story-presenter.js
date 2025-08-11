@@ -121,8 +121,8 @@ class CreateStoryPresenter {
         this._view.setLocation(latitude, longitude);
         this._view.showNotification("Lokasi berhasil didapatkan!", "success");
 
-        // Always show map with the current location
-        this._view._mapContainer.classList.remove("hidden");
+        // Always show map with the current location using view method
+        this._view.showMap();
 
         // Make sure map is visible before updating marker
         setTimeout(() => {
@@ -164,9 +164,9 @@ class CreateStoryPresenter {
     // Make sure Leaflet is loaded
     await loadLeafletResources();
 
-    // Make sure map container is visible
-    if (this._view._mapContainer.classList.contains("hidden")) {
-      this._view._mapContainer.classList.remove("hidden");
+    // Make sure map container is visible using view method
+    if (!this._view.isMapVisible()) {
+      this._view.showMap();
     }
 
     // Initialize map if needed
@@ -192,9 +192,9 @@ class CreateStoryPresenter {
     // Make sure Leaflet is loaded
     await loadLeafletResources();
 
-    // If map isn't visible, show it
-    if (this._view._mapContainer.classList.contains("hidden")) {
-      this._view._mapContainer.classList.remove("hidden");
+    // If map isn't visible, show it using view method
+    if (!this._view.isMapVisible()) {
+      this._view.showMap();
     }
 
     // If map isn't initialized yet, initialize it

@@ -251,10 +251,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     event.preventDefault(); // Mencegah refresh halaman
     skipLink.blur(); // Menghilangkan fokus skip to content
 
-    // Focus pada konten utama dari halaman saat ini
-    mainContent.focus(); // Fokus ke konten utama
+    // Focus pada konten utama yang spesifik dari halaman saat ini
+    // Cari elemen utama dari halaman yang sedang aktif
+    const pageTitle = mainContent.querySelector("h1");
+    const primaryContent = mainContent.querySelector(
+      "section, article, .container, .main-content-area"
+    );
 
-    // Scroll ke konten utama
-    mainContent.scrollIntoView({ behavior: "smooth" });
+    // Prioritas focus: h1 (judul halaman) > primary content > main container
+    let targetElement = pageTitle || primaryContent || mainContent;
+
+    // Pastikan elemen dapat di-focus dengan menambahkan tabindex jika diperlukan
+    if (!targetElement.hasAttribute("tabindex")) {
+      targetElement.setAttribute("tabindex", "-1");
+    }
+
+    // Focus pada elemen target
+    targetElement.focus();
+
+    // Scroll ke elemen target dengan smooth behavior
+    targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });

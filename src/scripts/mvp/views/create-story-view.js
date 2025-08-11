@@ -530,6 +530,28 @@ class CreateStoryView {
     this._locationStatus.classList.add("error");
   }
 
+  // Method to show/hide map container - should be called from presenter
+  showMap() {
+    if (this._mapContainer && this._mapContainer.classList.contains("hidden")) {
+      this._mapContainer.classList.remove("hidden");
+    }
+  }
+
+  hideMap() {
+    if (
+      this._mapContainer &&
+      !this._mapContainer.classList.contains("hidden")
+    ) {
+      this._mapContainer.classList.add("hidden");
+    }
+  }
+
+  isMapVisible() {
+    return (
+      this._mapContainer && !this._mapContainer.classList.contains("hidden")
+    );
+  }
+
   showNotification(message, type = "info") {
     this._notificationElement.textContent = message;
     this._notificationElement.className = `alert alert-${type}`;
