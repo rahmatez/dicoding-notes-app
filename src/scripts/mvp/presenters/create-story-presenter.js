@@ -70,6 +70,19 @@ class CreateStoryPresenter {
       this._view.showNotification("Cerita berhasil diunggah!", "success");
       this._view.resetForm();
 
+      // Show push notification if permission granted
+      if (Notification.permission === "granted") {
+        try {
+          new Notification("Cerita Berhasil Diunggah!", {
+            body: "Cerita Anda telah berhasil dibagikan kepada komunitas.",
+            icon: "/images/icons/icon-192x192.png",
+            badge: "/images/icons/icon-72x72.png",
+          });
+        } catch (notificationError) {
+          console.error("Failed to show notification:", notificationError);
+        }
+      }
+
       // Pre-fetch stories before redirecting
       try {
         await this._model.getStories(1, 10, true);
@@ -203,17 +216,11 @@ class CreateStoryPresenter {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
 
-        // Update form fields
+        // Update location through view method (no direct DOM manipulation)
         this._view.setLocation(lat, lng);
 
         // Update marker
         this._view.updateMapMarker(lat, lng);
-
-        // Update status text
-        this._view._locationStatus.textContent = `Lokasi dipilih: ${lat.toFixed(
-          6
-        )}, ${lng.toFixed(6)}`;
-        this._view._locationStatus.className = "location-status success";
       });
 
       // Update map size

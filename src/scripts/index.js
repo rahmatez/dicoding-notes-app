@@ -67,6 +67,41 @@ const setupLogoutButton = () => {
   }
 };
 
+// Request notification permission with alert/prompt
+const requestNotificationPermission = async () => {
+  if ("Notification" in window && "PushManager" in window) {
+    if (Notification.permission === "default") {
+      // Show alert/prompt to inform user about notification
+      const userWantsNotifications = confirm(
+        "Aplikasi ini ingin mengirimkan notifikasi ketika ada cerita baru. " +
+          "Apakah Anda mengizinkan notifikasi?"
+      );
+
+      if (userWantsNotifications) {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission === "granted") {
+            console.log("Notification permission granted");
+            // Try to register for web push after permission granted
+            await registerWebPush();
+          } else {
+            console.log("Notification permission denied");
+          }
+        } catch (error) {
+          console.error("Error requesting notification permission:", error);
+        }
+      } else {
+        console.log("User declined notification prompt");
+      }
+    } else if (Notification.permission === "granted") {
+      // Already granted, register for web push
+      await registerWebPush();
+    } else {
+      console.log("Notification permission was previously denied");
+    }
+  }
+};
+
 // Register Web Push
 const registerWebPush = async () => {
   if ("PushManager" in window) {
@@ -165,13 +200,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Register service worker dan web push
   await registerServiceWorker();
 
-  // Only try to register for web push if service worker registration was successful
-  // and we have the proper permissions
-  if (Notification.permission !== "denied") {
-    try {
+  // Request notification permission with alert/prompt
+  if (checkAuth()) {
+    // Only request permission if user is logged in
+    await requestNotificationPermission();
+  } else {
+    // If not logged in, still check and register if permission already granted
+    if (Notification.permission === "granted") {
       await registerWebPush();
-    } catch (error) {
-      console.log("Web Push registration skipped:", error.message);
     }
   }
 
@@ -214,7 +250,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   skipLink.addEventListener("click", function (event) {
     event.preventDefault(); // Mencegah refresh halaman
     skipLink.blur(); // Menghilangkan fokus skip to content
+
+    // Focus pada konten utama dari halaman saat ini
     mainContent.focus(); // Fokus ke konten utama
-    mainContent.scrollIntoView(); // Halaman scroll ke konten utama
+
+    // Scroll ke konten utama
+    mainContent.scrollIntoView({ behavior: "smooth" });
   });
 });

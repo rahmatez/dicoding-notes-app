@@ -652,6 +652,21 @@ class CreateStoryView {
       }
     }
   }
+
+  // Cleanup method to stop camera stream when leaving page
+  cleanup() {
+    console.log("CreateStoryView cleanup called");
+    this._stopCameraStream();
+    this._isCameraMode = false;
+
+    // Reset captured image
+    this._capturedImage = null;
+
+    // Reset form if needed
+    if (this._formElement) {
+      this._formElement.reset();
+    }
+  }
 }
 
 export default CreateStoryView;

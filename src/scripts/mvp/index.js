@@ -105,6 +105,12 @@ export const initCreateStoryPageMVP = () => {
     afterRender: async () => {
       await presenter.init();
     },
+    onLeave: () => {
+      // Stop camera stream when leaving page
+      if (view && typeof view.cleanup === "function") {
+        view.cleanup();
+      }
+    },
   };
 };
 

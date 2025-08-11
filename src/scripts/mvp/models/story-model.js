@@ -28,26 +28,20 @@ class StoryModel {
         this._stories = [...this._stories, ...listStory];
       }
 
-      // Store stories in IndexedDB for offline access
-      await StoryIdb.putStories(listStory);
+      // Note: Stories are now cached via service worker instead of IndexedDB
+      // IndexedDB is only used for favorites/likes
 
       this._currentPage = page + 1;
       return listStory;
     } catch (error) {
-      console.log("Failed to fetch from network, trying IndexedDB", error);
+      console.log("Network request failed:", error);
+      this._isOffline = true;
 
-      // If network request fails, try to get stories from IndexedDB
-      try {
-        const stories = await StoryIdb.getAllStories();
-        if (stories && stories.length > 0) {
-          this._isOffline = true;
-          this._stories = stories;
-          this._hasMoreStories = false; // Can't load more in offline mode
-          return stories;
-        }
-      } catch (idbError) {
-        console.error("IndexedDB error:", idbError);
-      }
+      // In offline mode, return empty array - service worker cache will handle offline content
+      // IndexedDB no longer stores general story data, only favorites
+      this._stories = [];
+      this._hasMoreStories = false;
+      throw error; // Let the service worker handle offline scenarios
 
       throw new Error(error.message || "Gagal memuat cerita");
     }
@@ -61,32 +55,15 @@ class StoryModel {
 
       console.log("Fetching story detail for ID:", id);
 
-      try {
-        // Try fetching from network first
-        const response = await getStoryDetail(id);
+      // Try fetching from network (service worker will handle caching)
+      const response = await getStoryDetail(id);
 
-        if (!response || !response.story) {
-          console.error("Invalid story detail response:", response);
-          throw new Error("Data cerita tidak ditemukan");
-        }
-
-        // Save to IndexedDB for offline access
-        await StoryIdb.putStories([response.story]);
-
-        return response.story;
-      } catch (networkError) {
-        console.log("Network request failed, trying IndexedDB", networkError);
-
-        // If network request fails, try to get from IndexedDB
-        const story = await StoryIdb.getStory(id);
-
-        if (story) {
-          return story;
-        }
-
-        // If not in IndexedDB either, throw original error
-        throw networkError;
+      if (!response || !response.story) {
+        console.error("Invalid story detail response:", response);
+        throw new Error("Data cerita tidak ditemukan");
       }
+
+      return response.story;
     } catch (error) {
       console.error("Error in model.getStoryDetail:", error);
       throw new Error(error.message || "Gagal memuat detail cerita");
@@ -98,32 +75,8 @@ class StoryModel {
       const response = await addStory(formData);
       return response;
     } catch (error) {
-      // If offline or network error, save as draft
-      if (!navigator.onLine || error.message.includes("network")) {
-        try {
-          // Create a draft object from FormData
-          const draftData = {
-            description: formData.get("description"),
-            timestamp: new Date().toISOString(),
-            // We can't store File objects in IndexedDB directly
-            // Instead we'll store a flag indicating there's a photo
-            hasPhoto: formData.get("photo") !== null,
-            latitude: formData.get("lat") || null,
-            longitude: formData.get("lon") || null,
-          };
-
-          const draftId = await StoryIdb.saveDraft(draftData);
-
-          throw new Error(
-            `Anda sedang offline. Cerita disimpan sebagai draft (ID: ${draftId})`
-          );
-        } catch (draftError) {
-          console.error("Failed to save draft:", draftError);
-          throw new Error(error.message || "Gagal menambahkan cerita");
-        }
-      } else {
-        throw new Error(error.message || "Gagal menambahkan cerita");
-      }
+      console.error("Error adding story:", error);
+      throw error; // Let presenter handle the error
     }
   }
 
@@ -150,7 +103,7 @@ class StoryModel {
     this._isOffline = false;
   }
 
-  // Methods for managing liked stories
+  // Methods for managing liked stories only
   async likeStory(story) {
     return StoryIdb.putLikedStory(story);
   }
@@ -165,27 +118,6 @@ class StoryModel {
 
   async getLikedStories() {
     return StoryIdb.getLikedStories();
-  }
-
-  // Methods for managing drafts
-  async saveDraft(draftData) {
-    return StoryIdb.saveDraft(draftData);
-  }
-
-  async getAllDrafts() {
-    return StoryIdb.getAllDrafts();
-  }
-
-  async getDraft(id) {
-    return StoryIdb.getDraft(id);
-  }
-
-  async deleteDraft(id) {
-    return StoryIdb.deleteDraft(id);
-  }
-
-  async updateDraft(id, draftData) {
-    return StoryIdb.updateDraft(id, draftData);
   }
 }
 

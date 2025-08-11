@@ -66,6 +66,12 @@ export function checkAuth() {
 export function logout() {
   removeToken();
   removeUser();
+
+  // Clear liked stories from IndexedDB on logout
+  import("../data/story-idb").then(({ default: StoryIdb }) => {
+    StoryIdb.clearLikedStories().catch(console.error);
+  });
+
   window.location.hash = "#/";
 }
 
